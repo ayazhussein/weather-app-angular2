@@ -1,3 +1,5 @@
+
+
 import {IWeather} from './Iweather';
 
 export class Weather implements IWeather {
