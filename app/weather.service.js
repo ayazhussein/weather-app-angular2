@@ -10,32 +10,34 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("@angular/core");
 var http_1 = require('@angular/http');
+var Observable_1 = require('rxjs/Observable');
 require('rxjs/add/operator/map');
 var weatherApiURL = "http://api.openweathermap.org/data/2.5/weather?appid=fc1a0d35266dcf4c90a5041f6fde6a17";
 var WeatherService = (function () {
     function WeatherService(http) {
         this.http = http;
-        this.getWeather = function (city) {
-            var weather;
-            if (city.toLocaleLowerCase() == "vienna") {
-                weather = {
-                    "id": 1,
-                    "city": "Vienna",
-                    "main": "Clouds",
-                    "description": "overcast clouds"
-                };
-            }
-            else if (city.toLocaleLowerCase() == "london") {
-                weather = {
-                    "id": 2,
-                    "city": "London",
-                    "main": "Rain",
-                    "description": "very heavy rain"
-                };
-            }
-            return weather;
-        };
     }
+    WeatherService.prototype.getWeatherUrl = function (city, unit) {
+        return weatherApiURL + "&q=" + city + "&units=" + unit;
+    };
+    WeatherService.prototype.getWeather = function (city, unit) {
+        var _this = this;
+        return new Observable_1.Observable(function (observable) {
+            _this.http.get(_this.getWeatherUrl(city, unit))
+                .map(function (res) { return res.json(); })
+                .subscribe(function (res) {
+                if (res.code == "404") {
+                    observable.error(res.message);
+                }
+                else {
+                    var weather = res.weather[0];
+                    weather.city = city;
+                    observable.next(weather);
+                }
+            });
+        });
+    };
+    ;
     WeatherService = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [http_1.Http])

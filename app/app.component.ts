@@ -9,11 +9,11 @@ import {WeatherService} from './weather.service';
             <h1>Weather App</h1>
         </header>
         <div class="content">
-            <input [(ngModel)]="city" placeholder="Search city" (keyup)="addCity(city, $event)">
+            <input [(ngModel)]="city" placeholder="Search city" (keyup)="addCity(city,units, $event)">
             <p *ngIf="errorMessage" class="error-message">{{errorMessage}}</p>
             <ul *ngFor="let weather of weatherOfCities" class="weather-card">
                 <li>
-                    <h2>{{ weather.city }} : </h2>
+                    <h2>{{ weather.city }} ˚ </h2>
                     <ul>
                         <li>Weather type : {{weather.main}}</li>
                         <li>Weather description : {{weather.description}}</li>
@@ -52,25 +52,35 @@ import {WeatherService} from './weather.service';
     providers: [WeatherService]
 })
 export class AppComponent {
-
+    public unit:string = "metric";
     public city:string;
     public cities:Array<string>;
     public weatherOfCities:Array<Weather>;
     public errorMessage:string;
-
+    public id:number;
     constructor(private weatherService:WeatherService) {
         this.city = '';
         this.weatherOfCities = [];
     }
 
 
-    addCity(city:string, $event:any) {
+    addCity(city:string, unit:string, $event:any) {
         if ($event.keyCode == 13) {
-            var weather = this.weatherService.getWeather(city);
-            if (weather) {
-                this.weatherOfCities.unshift(weather);
-            }
-            this.city = "";
+            this.weatherService.getWeather(city, unit)
+                .subscribe(weather => {
+                    if (weather) {
+                        this.weatherOfCities.push(weather);
+                        this.errorMessage = undefined;
+
+                    } else {
+                        var cityWithoutWeather = city;
+                        this.errorMessage = "* There is no weather data for " + cityWithoutWeather;
+                    }
+                    this.city = "";
+                }, error => {
+                    this.city = "";
+                    this.errorMessage = error;
+                })
         }
     };
 }
